@@ -240,7 +240,8 @@
         }
 
         /* Standard CSS Hover - No SCSS nesting */
-        .enemy-card:hover .enemy-overlay {
+        .enemy-card:hover .enemy-overlay,
+        .enemy-card.touch-active .enemy-overlay {
             transform: translateY(0);
         }
 
@@ -305,6 +306,54 @@
 
         .nav-btn:hover { color: var(--highlight); }
         .hidden { display: none !important; }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            body, html { font-size: 16px; }
+            h1 { font-size: 3rem; margin-bottom: 1rem; }
+            .title-huge { font-size: 6rem; }
+            h2 { font-size: 2rem; margin-bottom: 1rem; }
+            h3 { font-size: 1.5rem; }
+            p, li { font-size: 1rem; margin-bottom: 1rem; }
+            
+            .slide { 
+                padding: 10% 5%; 
+                overflow-y: auto; 
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+            }
+            
+            #slide-title {
+                justify-content: center;
+            }
+
+            .concept-container {
+                flex-direction: column;
+                gap: 20px;
+                height: auto;
+            }
+
+            .concept-img { width: 80%; margin: 0 auto; }
+            .concept-text { flex: none; }
+
+            .enemies-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                height: auto;
+                padding-bottom: 80px; /* Space for nav buttons */
+            }
+
+            .enemy-card { min-height: 220px; }
+            
+            .nav-btn {
+                font-size: 3.5rem;
+                padding: 20px 30px;
+                bottom: 10px;
+            }
+
+            #press-enter { font-size: 2rem; width: 100%; text-align: center; }
+        }
     </style>
 </head>
 <body>
@@ -495,6 +544,43 @@
             } else if (e.key === 'ArrowLeft') {
                 prevSlide();
             }
+        });
+
+        // Swipe Support for Mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const swipeThreshold = 50; // Minimum distance to register a swipe
+            if (touchEndX < touchStartX - swipeThreshold) {
+                nextSlide(); // Swipe left
+            }
+            if (touchEndX > touchStartX + swipeThreshold) {
+                prevSlide(); // Swipe right
+            }
+        }
+
+        // Tap Support for Enemy Cards (Hover Alternative for Mobile)
+        const enemyCards = document.querySelectorAll('.enemy-card');
+        enemyCards.forEach(card => {
+            card.addEventListener('click', (e) => {
+                // Toggle active state for touched card, remove from others
+                const wasActive = card.classList.contains('touch-active');
+                enemyCards.forEach(c => c.classList.remove('touch-active'));
+                
+                if (!wasActive) {
+                    card.classList.add('touch-active');
+                }
+            });
         });
     </script>
 </body>
