@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9Bit Pitch Deck</title>
+    
+    <!-- Load Cascadia Code from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Load the provided Jersey 10 font */
+        @font-face {
+            font-family: 'Jersey 10';
+            src: url('Jersey10-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --bg-color: #050505;
+            --neon-green: #00ff00;
+            --dim-green: #006600;
+            --highlight: #ffffff;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--neon-green);
+            font-family: 'Cascadia Code', monospace;
+            overflow: hidden;
+            font-size: 18px; 
+            user-select: none;
+            -webkit-font-smoothing: none;
+            box-sizing: border-box;
+        }
+
+        /* SVG Circuit HUD */
+        .hud-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        svg.circuit-hud {
+            width: 100%;
+            height: 100%;
+        }
+
+        .hud-line {
+            stroke: var(--dim-green);
+            stroke-width: 2;
+            fill: none;
+            vector-effect: non-scaling-stroke;
+            shape-rendering: crispEdges; 
+        }
+
+        .hud-dotted {
+            stroke: var(--dim-green);
+            stroke-width: 2;
+            stroke-dasharray: 4 4;
+            fill: none;
+            vector-effect: non-scaling-stroke;
+            shape-rendering: crispEdges;
+        }
+
+        /* Presentation Container */
+        #presentation {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            z-index: 20;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Slide Styles */
+        .slide {
+            position: absolute;
+            width: 100vw;
+            height: 100vh;
+            text-align: left;
+            background-color: var(--bg-color);
+            padding: 5%;
+            box-sizing: border-box;
+            
+            /* Sharp sliding animation setup */
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(150px);
+            transition: transform 0.4s cubic-bezier(0.0, 0.0, 0.2, 1), opacity 0.3s ease-out, visibility 0.4s;
+            z-index: 1;
+        }
+
+        #slide-title {
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            background: transparent;
+        }
+
+        /* Active Slide (Center) */
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+            z-index: 2;
+        }
+
+        /* Past Slide (Exiting Left) */
+        .slide.past-left {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-150px);
+            z-index: 1;
+        }
+
+        /* Future Slide (Exiting Right) */
+        .slide.past-right {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(150px);
+            z-index: 1;
+        }
+
+        /* Typography */
+        h1, h2, h3 {
+            font-family: 'Jersey 10', 'Courier New', monospace;
+            margin: 0;
+            text-transform: uppercase;
+            line-height: 1.1;
+            font-weight: normal;
+            text-align: left;
+        }
+
+        h1 { font-size: 5rem; margin-bottom: 1.5rem; color: var(--highlight); }
+        .title-huge { font-size: 14rem; text-align: center; width: 100%; color: var(--neon-green); }
+        h2 { font-size: 3.5rem; margin-bottom: 2rem; color: var(--highlight); border-bottom: 3px dotted var(--dim-green); padding-bottom: 10px; display: block; }
+        h3 { font-size: 2.5rem; margin-top: 0; margin-bottom: 1rem; color: var(--highlight); }
+        
+        p, li { 
+            font-size: 1.25rem; 
+            line-height: 1.7;
+            margin-bottom: 1.2rem; 
+        }
+
+        .mechanics-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .mechanics-list li {
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .mechanics-list li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--highlight);
+            font-weight: bold;
+        }
+        
+        .highlight-text {
+            color: var(--highlight);
+            font-weight: bold;
+        }
+
+        /* Concept Layout (Slide 2) */
+        .concept-container {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            height: 70%;
+        }
+
+        .concept-img {
+            width: 50%;
+            border: 4px solid var(--neon-green);
+            image-rendering: pixelated;
+        }
+
+        .concept-text {
+            flex: 1;
+        }
+
+        /* Enemy Grid Layout (Slide 4) */
+        .enemies-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            height: 60vh;
+        }
+
+        .enemy-card {
+            position: relative;
+            border: 2px solid var(--neon-green);
+            overflow: hidden;
+            background-color: rgba(0, 255, 0, 0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .enemy-card img {
+            max-width: 70%;
+            max-height: 70%;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
+        .enemy-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(0, 150, 0, 0.95) 0%, rgba(0, 50, 0, 0.7) 45%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: flex-start;
+            padding: 25px;
+            box-sizing: border-box;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        /* Standard CSS Hover - No SCSS nesting */
+        .enemy-card:hover .enemy-overlay {
+            transform: translateY(0);
+        }
+
+        .enemy-overlay p {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #000000;
+            line-height: 1.4;
+        }
+        
+        .enemy-overlay h3 {
+            color: #000000;
+        }
+
+        /* Phase Cards (Slide 3 Overrides) */
+        .phase-overlay {
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 45%, transparent 100%);
+        }
+
+        .phase-overlay h3, .phase-overlay p {
+            color: #ffffff;
+        }
+
+        /* Blinking Press Enter Text */
+        #press-enter {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Jersey 10', 'Courier New', monospace;
+            font-size: 3rem;
+            color: var(--neon-green);
+            cursor: pointer;
+            z-index: 50;
+            animation: blink 1s step-end infinite;
+            text-transform: uppercase;
+            padding: 10px 20px;
+            background-color: var(--bg-color);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Navigation Buttons */
+        .nav-btn {
+            position: fixed;
+            bottom: 20px;
+            font-family: 'Jersey 10', 'Courier New', monospace;
+            font-size: 4rem;
+            color: var(--neon-green);
+            cursor: pointer;
+            z-index: 50;
+            padding: 10px 30px;
+            background: none;
+            border: none;
+        }
+
+        #nav-left { left: 20px; }
+        #nav-right { right: 20px; }
+
+        .nav-btn:hover { color: var(--highlight); }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <!-- Circuit Board HUD Vectors (Only active on Slide 1) -->
+    <div class="hud-container" id="circuit-hud">
+        <svg class="circuit-hud" viewBox="0 0 1920 1080" preserveAspectRatio="none">
+            <path class="hud-line" d="M -10,80 L 300,80 L 320,100 L 1500,100 L 1520,80 L 1930,80" />
+            <path class="hud-line" d="M -10,350 L 500,350 L 510,370 L 600,370 L 610,390 L -10,390" />
+            <path class="hud-dotted" d="M 50,0 L 50,380" />
+            <path class="hud-dotted" d="M 550,0 L 550,360" />
+            <path class="hud-dotted" d="M 1150,0 L 1150,300" />
+            <path class="hud-line" d="M -10,950 L 350,950 L 380,980 L 1000,980 L 1020,950 L 1400,950 L 1420,930 L 1700,930 L 1720,910 L 1930,910" />
+            <path class="hud-dotted" d="M 1350,380 L 1350,850" />
+            <path class="hud-line" d="M 1400,430 L 1750,430" />
+            <path class="hud-line" d="M 1520,430 L 1520,520 L 1550,520 L 1550,470 L 1600,470 L 1600,520 L 1630,520 L 1630,480" />
+            <path class="hud-line" d="M 1390,400 L 1390,830 L 1480,830 L 1480,600" />
+            <path class="hud-dotted" d="M 1520,980 L 1520,1090" />
+        </svg>
+    </div>
+
+    <!-- Presentation Content -->
+    <div id="presentation">
+        
+        <!-- Slide 1: Title Slide -->
+        <div class="slide active" id="slide-title">
+            <h1 class="title-huge">9Bit</h1>
+        </div>
+
+        <!-- Slide 2: Core Concept -->
+        <div class="slide past-right">
+            <h2>&lt; Core Concept & Objective</h2>
+            <div class="concept-container">
+                <img src="MainMenu_Sample01.jpg" alt="9Bit Main Menu" class="concept-img">
+                <div class="concept-text">
+                    <p>You play as a single "bit" of computer memory navigating through the web to reach a target IP address before the server times out.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Phase Shift -->
+        <div class="slide past-right">
+            <h2>&lt; Player Mechanic: Phase Shift</h2>
+            <p>The player can toggle between 2 phases, representing binary states (0 and 1):</p>
+            <div class="enemies-grid">
+                <div class="enemy-card">
+                    <img src="9Bit_Circle.png" alt="Phase 0 Circle">
+                    <div class="enemy-overlay phase-overlay">
+                        <h3>Phase 0 (The Circle)</h3>
+                        <p>Moves fluidly, rolls down slopes, and retains momentum but cannot jump. Great for speed.</p>
+                    </div>
+                </div>
+                <div class="enemy-card">
+                    <img src="9Bit_Sqaure.png" alt="Phase 1 Square">
+                    <div class="enemy-overlay phase-overlay">
+                        <h3>Phase 1 (The Square)</h3>
+                        <p>Heavy and precise. Stops instantly, jumps, grips edges, and won't slide off narrow platforms.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Enemies -->
+        <div class="slide past-right">
+            <h2>&lt; Enemies</h2>
+            <div class="enemies-grid">
+                <div class="enemy-card">
+                    <img src="Virus.png" alt="Virus">
+                    <div class="enemy-overlay">
+                        <h3>Virus</h3>
+                        <p>Roams the circuit waiting to catch a bit and corrupt it.</p>
+                    </div>
+                </div>
+                <div class="enemy-card">
+                    <img src="TrojanHorse_1.png" alt="Trojan Horse">
+                    <div class="enemy-overlay">
+                        <h3>Trojan Horse</h3>
+                        <p>Camouflages as a server to bait you in and corrupt your bit.</p>
+                    </div>
+                </div>
+                <div class="enemy-card">
+                    <img src="Malware_Blaster_Cannon.png" alt="Malware Blaster">
+                    <div class="enemy-overlay">
+                        <h3>Malware Blaster</h3>
+                        <p>Cannon obstacle firing projectiles upon detecting the Bit.</p>
+                    </div>
+                </div>
+                <div class="enemy-card">
+                    <img src="Hacker.png" alt="Hacker">
+                    <div class="enemy-overlay">
+                        <h3>Hacker</h3>
+                        <p>Roams the level, approaches you, and fires freezing projectiles.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Servers & Decryption -->
+        <div class="slide past-right">
+            <h2>&lt; Servers & Decryption</h2>
+            <ul class="mechanics-list">
+                <li><span class="highlight-text">Phase Matching:</span> Hit the server in the correct binary phase (0 or 1) to activate it.</li>
+                <li><span class="highlight-text">Decryption Chains:</span> Activate all servers in the correct order to decrypt the level's hidden word.</li>
+                <li><span class="highlight-text">Honeypots:</span> Deploy these as decoys to lure out Trojan Horses and Viruses from your path.</li>
+            </ul>
+        </div>
+
+        <!-- Slide 6: Future Prospects -->
+        <div class="slide past-right">
+            <h2>&lt; Future Prospects</h2>
+            <ul class="mechanics-list">
+                <li><span class="highlight-text">Procedural Level Generation:</span> Dynamically generated circuit board tracks for infinite replayability.</li>
+                <li><span class="highlight-text">Dynamic Enemy Placement:</span> Algorithmic spawning of Hackers and Viruses to adapt to player skill.</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- Navigation Elements -->
+    <div id="press-enter">PRESS ENTER</div>
+    <button id="nav-left" class="nav-btn">&lt;</button>
+    <button id="nav-right" class="nav-btn">&gt;</button>
+
+    <!-- Logic Script -->
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const pressEnterSign = document.getElementById('press-enter');
+        const circuitHud = document.getElementById('circuit-hud');
+        let currentSlide = 0;
+
+        function updateSlides() {
+            slides.forEach((slide, index) => {
+                // Clear existing state classes
+                slide.classList.remove('active', 'past-left', 'past-right');
+                
+                if (index === currentSlide) {
+                    // Current slide comes in (active)
+                    slide.classList.add('active');
+                } else if (index < currentSlide) {
+                    // Previous slides sit to the left
+                    slide.classList.add('past-left');
+                } else {
+                    // Future slides sit to the right
+                    slide.classList.add('past-right');
+                }
+            });
+
+            // Handle Press Enter and HUD visibility (Only visible on Title Slide 0)
+            if (currentSlide === 0) {
+                pressEnterSign.classList.remove('hidden');
+                circuitHud.classList.remove('hidden');
+            } else {
+                pressEnterSign.classList.add('hidden');
+                circuitHud.classList.add('hidden');
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlides();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlides();
+            }
+        }
+
+        // Initialize state on load
+        updateSlides();
+
+        // Click to advance on press-enter
+        pressEnterSign.addEventListener('click', nextSlide);
+
+        // Click Navigation Buttons
+        document.getElementById('nav-left').addEventListener('click', prevSlide);
+        document.getElementById('nav-right').addEventListener('click', nextSlide);
+
+        // Keyboard Navigation Support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                nextSlide();
+            } else if (e.key === 'ArrowRight') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+    </script>
+</body>
+</html>
