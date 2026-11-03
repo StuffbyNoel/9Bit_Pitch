@@ -5,11 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>9Bit Pitch Deck</title>
     
-    <!-- Load Cascadia Code from Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@400;700&display=swap" rel="stylesheet">
-    
     <style>
         /* Load the provided Jersey 10 font */
         @font-face {
@@ -33,45 +28,12 @@
             height: 100%;
             background-color: var(--bg-color);
             color: var(--neon-green);
-            font-family: 'Cascadia Code', monospace;
+            font-family: 'Courier New', Courier, monospace;
             overflow: hidden;
             font-size: 18px; 
             user-select: none;
             -webkit-font-smoothing: none;
             box-sizing: border-box;
-        }
-
-        /* SVG Circuit HUD */
-        .hud-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        svg.circuit-hud {
-            width: 100%;
-            height: 100%;
-        }
-
-        .hud-line {
-            stroke: var(--dim-green);
-            stroke-width: 2;
-            fill: none;
-            vector-effect: non-scaling-stroke;
-            shape-rendering: crispEdges; 
-        }
-
-        .hud-dotted {
-            stroke: var(--dim-green);
-            stroke-width: 2;
-            stroke-dasharray: 4 4;
-            fill: none;
-            vector-effect: non-scaling-stroke;
-            shape-rendering: crispEdges;
         }
 
         /* Presentation Container */
@@ -92,7 +54,7 @@
             height: 100vh;
             text-align: left;
             background-color: var(--bg-color);
-            padding: 5%;
+            padding: 5% 8%;
             box-sizing: border-box;
             
             /* Sharp sliding animation setup */
@@ -101,13 +63,14 @@
             transform: translateX(150px);
             transition: transform 0.4s cubic-bezier(0.0, 0.0, 0.2, 1), opacity 0.3s ease-out, visibility 0.4s;
             z-index: 1;
+            
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         #slide-title {
-            display: flex; 
-            justify-content: center; 
             align-items: center; 
-            background: transparent;
         }
 
         /* Active Slide (Center) */
@@ -146,8 +109,8 @@
 
         h1 { font-size: 5rem; margin-bottom: 1.5rem; color: var(--highlight); }
         .title-huge { font-size: 14rem; text-align: center; width: 100%; color: var(--neon-green); }
-        h2 { font-size: 3.5rem; margin-bottom: 2rem; color: var(--highlight); border-bottom: 3px dotted var(--dim-green); padding-bottom: 10px; display: block; }
-        h3 { font-size: 2.5rem; margin-top: 0; margin-bottom: 1rem; color: var(--highlight); }
+        h2 { font-size: 3.5rem; margin-bottom: 2rem; color: var(--highlight); border-bottom: 3px dotted var(--dim-green); padding-bottom: 10px; display: block; width: 100%; }
+        h3 { font-size: 2rem; margin-top: 0; margin-bottom: 0.5rem; color: var(--highlight); }
         
         p, li { 
             font-size: 1.25rem; 
@@ -184,7 +147,7 @@
             display: flex;
             align-items: center;
             gap: 40px;
-            height: 70%;
+            width: 100%;
         }
 
         .concept-img {
@@ -197,15 +160,24 @@
             flex: 1;
         }
 
-        /* Enemy Grid Layout (Slide 4) */
-        .enemies-grid {
+        /* Interactive Cards (Phases & Enemies) */
+        .card-grid-2x2 {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 30px;
-            height: 60vh;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
         }
 
-        .enemy-card {
+        .card-flex-row {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            width: 100%;
+        }
+
+        .interactive-card {
             position: relative;
             border: 2px solid var(--neon-green);
             overflow: hidden;
@@ -213,56 +185,77 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            aspect-ratio: 1 / 1; /* Forces squarish shape */
+            width: 100%;
+            max-width: 400px;
+            cursor: crosshair;
         }
 
-        .enemy-card img {
-            max-width: 70%;
-            max-height: 70%;
+        .interactive-card .card-img {
+            max-width: 60%;
+            max-height: 60%;
             object-fit: contain;
+            image-rendering: pixelated;
+            z-index: 2;
+            transition: opacity 0.3s ease;
+        }
+
+        .interactive-card .hover-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            z-index: 1;
+            transition: opacity 0.3s ease;
             image-rendering: pixelated;
         }
 
-        .enemy-overlay {
+        .card-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(to top, rgba(0, 150, 0, 0.95) 0%, rgba(0, 50, 0, 0.7) 45%, transparent 100%);
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 45%, transparent 100%);
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
             align-items: flex-start;
-            padding: 25px;
+            padding: 20px;
             box-sizing: border-box;
             transform: translateY(100%);
             transition: transform 0.3s ease-in-out;
+            z-index: 3;
         }
 
-        /* Standard CSS Hover - No SCSS nesting */
-        .enemy-card:hover .enemy-overlay,
-        .enemy-card.touch-active .enemy-overlay {
+        .card-overlay p, .card-overlay h3 {
+            color: #ffffff; /* White text on hover */
+            margin: 0;
+        }
+        
+        .card-overlay p {
+            font-size: 1.1rem;
+            line-height: 1.4;
+            margin-top: 5px;
+        }
+
+        /* Hover & Touch Interactions */
+        .interactive-card:hover .card-overlay,
+        .interactive-card.touch-active .card-overlay {
             transform: translateY(0);
         }
 
-        .enemy-overlay p {
-            margin: 0;
-            font-size: 1.1rem;
-            color: #ffffff;
-            line-height: 1.4;
-        }
-        
-        .enemy-overlay h3 {
-            color: #ffffff;
+        .interactive-card:hover .card-img,
+        .interactive-card.touch-active .card-img {
+            opacity: 0; /* Hide image */
         }
 
-        /* Phase Cards (Slide 3 Overrides) */
-        .phase-overlay {
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 45%, transparent 100%);
-        }
-
-        .phase-overlay h3, .phase-overlay p {
-            color: #ffffff;
+        .interactive-card:hover .hover-video,
+        .interactive-card.touch-active .hover-video {
+            opacity: 1; /* Show video */
         }
 
         /* Blinking Press Enter Text */
@@ -319,32 +312,29 @@
             .slide { 
                 padding: 10% 5%; 
                 overflow-y: auto; 
-                display: flex;
-                flex-direction: column;
                 justify-content: flex-start;
-            }
-            
-            #slide-title {
-                justify-content: center;
             }
 
             .concept-container {
                 flex-direction: column;
                 gap: 20px;
-                height: auto;
             }
 
-            .concept-img { width: 80%; margin: 0 auto; }
+            .concept-img { width: 100%; margin: 0 auto; }
             .concept-text { flex: none; }
 
-            .enemies-grid {
+            .card-grid-2x2, .card-flex-row {
                 grid-template-columns: 1fr;
-                gap: 15px;
-                height: auto;
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
                 padding-bottom: 80px; /* Space for nav buttons */
             }
 
-            .enemy-card { min-height: 220px; }
+            .interactive-card {
+                width: 80%;
+                max-width: 300px;
+            }
             
             .nav-btn {
                 font-size: 3.5rem;
@@ -358,23 +348,6 @@
 </head>
 <body>
 
-    <!-- Circuit Board HUD Vectors (Only active on Slide 1) -->
-    <div class="hud-container" id="circuit-hud">
-        <svg class="circuit-hud" viewBox="0 0 1920 1080" preserveAspectRatio="none">
-            <path class="hud-line" d="M -10,80 L 300,80 L 320,100 L 1500,100 L 1520,80 L 1930,80" />
-            <path class="hud-line" d="M -10,350 L 500,350 L 510,370 L 600,370 L 610,390 L -10,390" />
-            <path class="hud-dotted" d="M 50,0 L 50,380" />
-            <path class="hud-dotted" d="M 550,0 L 550,360" />
-            <path class="hud-dotted" d="M 1150,0 L 1150,300" />
-            <path class="hud-line" d="M -10,950 L 350,950 L 380,980 L 1000,980 L 1020,950 L 1400,950 L 1420,930 L 1700,930 L 1720,910 L 1930,910" />
-            <path class="hud-dotted" d="M 1350,380 L 1350,850" />
-            <path class="hud-line" d="M 1400,430 L 1750,430" />
-            <path class="hud-line" d="M 1520,430 L 1520,520 L 1550,520 L 1550,470 L 1600,470 L 1600,520 L 1630,520 L 1630,480" />
-            <path class="hud-line" d="M 1390,400 L 1390,830 L 1480,830 L 1480,600" />
-            <path class="hud-dotted" d="M 1520,980 L 1520,1090" />
-        </svg>
-    </div>
-
     <!-- Presentation Content -->
     <div id="presentation">
         
@@ -385,7 +358,7 @@
 
         <!-- Slide 2: Core Concept -->
         <div class="slide past-right">
-            <h2>&lt; Core Concept & Objective</h2>
+            <h2>&lt; Core Concept</h2>
             <div class="concept-container">
                 <img src="MainMenu_Sample01.jpg" alt="9Bit Main Menu" class="concept-img">
                 <div class="concept-text">
@@ -396,20 +369,22 @@
 
         <!-- Slide 3: Phase Shift -->
         <div class="slide past-right">
-            <h2>&lt; Player Mechanic: Phase Shift</h2>
-            <p>The player can toggle between 2 phases, representing binary states (0 and 1):</p>
-            <div class="enemies-grid">
-                <div class="enemy-card">
-                    <img src="9Bit_Circle.png" alt="Phase 0 Circle">
-                    <div class="enemy-overlay phase-overlay">
-                        <h3>Phase 0 (The Circle)</h3>
+            <h2>&lt; Mechanics</h2>
+            <p>Toggle between 2 phases:</p>
+            <div class="card-flex-row">
+                <div class="interactive-card phase-card">
+                    <img src="9Bit_Circle.png" alt="Phase 0 Circle" class="card-img">
+                    <video class="hover-video" src="gameplay.mp4" loop muted playsinline></video>
+                    <div class="card-overlay">
+                        <h3>Phase 0 (Circle)</h3>
                         <p>Moves fluidly, rolls down slopes, and retains momentum but cannot jump. Great for speed.</p>
                     </div>
                 </div>
-                <div class="enemy-card">
-                    <img src="9Bit_Sqaure.png" alt="Phase 1 Square">
-                    <div class="enemy-overlay phase-overlay">
-                        <h3>Phase 1 (The Square)</h3>
+                <div class="interactive-card phase-card">
+                    <img src="9Bit_Sqaure.png" alt="Phase 1 Square" class="card-img">
+                    <video class="hover-video" src="gameplay.mp4" loop muted playsinline></video>
+                    <div class="card-overlay">
+                        <h3>Phase 1 (Square)</h3>
                         <p>Heavy and precise. Stops instantly, jumps, grips edges, and won't slide off narrow platforms.</p>
                     </div>
                 </div>
@@ -419,33 +394,37 @@
         <!-- Slide 4: Enemies -->
         <div class="slide past-right">
             <h2>&lt; Enemies</h2>
-            <div class="enemies-grid">
-                <div class="enemy-card">
-                    <img src="Virus.png" alt="Virus">
-                    <div class="enemy-overlay">
+            <div class="card-grid-2x2">
+                <div class="interactive-card enemy-card">
+                    <img src="Virus.png" alt="Virus" class="card-img">
+                    <video class="hover-video" src="gameplay.mp4" loop muted playsinline></video>
+                    <div class="card-overlay">
                         <h3>Virus</h3>
                         <p>Roams the circuit waiting to catch a bit and corrupt it.</p>
                     </div>
                 </div>
-                <div class="enemy-card">
-                    <img src="TrojanHorse_1.png" alt="Trojan Horse">
-                    <div class="enemy-overlay">
+                <div class="interactive-card enemy-card">
+                    <img src="TrojanHorse_1.png" alt="Trojan Horse" class="card-img">
+                    <video class="hover-video" src="gameplay.mp4" loop muted playsinline></video>
+                    <div class="card-overlay">
                         <h3>Trojan Horse</h3>
                         <p>Camouflages as a server to bait you in and corrupt your bit.</p>
                     </div>
                 </div>
-                <div class="enemy-card">
-                    <img src="Malware_Blaster_Cannon.png" alt="Malware Blaster">
-                    <div class="enemy-overlay">
-                        <h3>Malware Blaster</h3>
-                        <p>Cannon obstacle firing projectiles upon detecting the Bit.</p>
-                    </div>
-                </div>
-                <div class="enemy-card">
-                    <img src="Hacker.png" alt="Hacker">
-                    <div class="enemy-overlay">
+                <div class="interactive-card enemy-card">
+                    <img src="Hacker.png" alt="Hacker" class="card-img">
+                    <video class="hover-video" src="gameplay.mp4" loop muted playsinline></video>
+                    <div class="card-overlay">
                         <h3>Hacker</h3>
                         <p>Roams the level, approaches you, and fires freezing projectiles.</p>
+                    </div>
+                </div>
+                <div class="interactive-card enemy-card">
+                    <img src="Malware_Blaster_Cannon.png" alt="Malware Blaster" class="card-img">
+                    <video class="hover-video" src="MalwareBlaster.mp4" loop muted playsinline></video>
+                    <div class="card-overlay">
+                        <h3>Malware Blaster</h3>
+                        <p>Cannon obstacle firing projectiles upon detecting the Bit.</p>
                     </div>
                 </div>
             </div>
@@ -453,7 +432,7 @@
 
         <!-- Slide 5: Servers & Decryption -->
         <div class="slide past-right">
-            <h2>&lt; Servers & Decryption</h2>
+            <h2>&lt; Servers</h2>
             <ul class="mechanics-list">
                 <li><span class="highlight-text">Phase Matching:</span> Hit the server in the correct binary phase (0 or 1) to activate it.</li>
                 <li><span class="highlight-text">Decryption Chains:</span> Activate all servers in the correct order to decrypt the level's hidden word.</li>
@@ -474,14 +453,15 @@
 
     <!-- Navigation Elements -->
     <div id="press-enter">PRESS ENTER</div>
-    <button id="nav-left" class="nav-btn">&lt;</button>
-    <button id="nav-right" class="nav-btn">&gt;</button>
+    <button id="nav-left" class="nav-btn hidden">&lt;</button>
+    <button id="nav-right" class="nav-btn hidden">&gt;</button>
 
     <!-- Logic Script -->
     <script>
         const slides = document.querySelectorAll('.slide');
         const pressEnterSign = document.getElementById('press-enter');
-        const circuitHud = document.getElementById('circuit-hud');
+        const navLeft = document.getElementById('nav-left');
+        const navRight = document.getElementById('nav-right');
         let currentSlide = 0;
 
         function updateSlides() {
@@ -490,24 +470,23 @@
                 slide.classList.remove('active', 'past-left', 'past-right');
                 
                 if (index === currentSlide) {
-                    // Current slide comes in (active)
                     slide.classList.add('active');
                 } else if (index < currentSlide) {
-                    // Previous slides sit to the left
                     slide.classList.add('past-left');
                 } else {
-                    // Future slides sit to the right
                     slide.classList.add('past-right');
                 }
             });
 
-            // Handle Press Enter and HUD visibility (Only visible on Title Slide 0)
+            // Handle Press Enter and Navigation Buttons visibility
             if (currentSlide === 0) {
                 pressEnterSign.classList.remove('hidden');
-                circuitHud.classList.remove('hidden');
+                navLeft.classList.add('hidden');
+                navRight.classList.add('hidden');
             } else {
                 pressEnterSign.classList.add('hidden');
-                circuitHud.classList.add('hidden');
+                navLeft.classList.remove('hidden');
+                navRight.classList.remove('hidden');
             }
         }
 
@@ -532,12 +511,12 @@
         pressEnterSign.addEventListener('click', nextSlide);
 
         // Click Navigation Buttons
-        document.getElementById('nav-left').addEventListener('click', prevSlide);
-        document.getElementById('nav-right').addEventListener('click', nextSlide);
+        navLeft.addEventListener('click', prevSlide);
+        navRight.addEventListener('click', nextSlide);
 
         // Keyboard Navigation Support
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && currentSlide === 0) {
                 nextSlide();
             } else if (e.key === 'ArrowRight') {
                 nextSlide();
@@ -560,25 +539,48 @@
         }, { passive: true });
 
         function handleSwipe() {
-            const swipeThreshold = 50; // Minimum distance to register a swipe
+            const swipeThreshold = 50; 
             if (touchEndX < touchStartX - swipeThreshold) {
-                nextSlide(); // Swipe left
+                nextSlide(); 
             }
             if (touchEndX > touchStartX + swipeThreshold) {
-                prevSlide(); // Swipe right
+                prevSlide(); 
             }
         }
 
-        // Tap Support for Enemy Cards (Hover Alternative for Mobile)
-        const enemyCards = document.querySelectorAll('.enemy-card');
-        enemyCards.forEach(card => {
+        // Interactive Card Logic (Hover + Touch for Videos)
+        const interactiveCards = document.querySelectorAll('.interactive-card');
+        
+        interactiveCards.forEach(card => {
+            const video = card.querySelector('video');
+            
+            // Desktop Hover Mechanics
+            card.addEventListener('mouseenter', () => {
+                if (video) video.play();
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                if (video) {
+                    video.pause();
+                    video.currentTime = 0; // Reset video to start
+                }
+            });
+
+            // Mobile Tap Mechanics
             card.addEventListener('click', (e) => {
-                // Toggle active state for touched card, remove from others
                 const wasActive = card.classList.contains('touch-active');
-                enemyCards.forEach(c => c.classList.remove('touch-active'));
                 
+                // Deactivate all cards first
+                interactiveCards.forEach(c => {
+                    c.classList.remove('touch-active');
+                    const v = c.querySelector('video');
+                    if (v) { v.pause(); v.currentTime = 0; }
+                });
+                
+                // Activate touched card
                 if (!wasActive) {
                     card.classList.add('touch-active');
+                    if (video) video.play();
                 }
             });
         });
